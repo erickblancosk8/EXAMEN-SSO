@@ -1,0 +1,79 @@
+#!/bin/bash
+# -*- ENCODING: UTF-8 -*-
+#
+#Erick Daniel Blanco De La Garza
+#Matricula: 1756734
+#
+#Introducir archivo y llave para la conexion 
+read -p "Introduce la ubicaion o nombre del archivo con ips: " ADDRESS
+read -p 'Introduce la ubicación de la llave ssh para la conexion: 'key 
+#
+#Ciclo para leer los datos del archivo
+while ADDRESS = read line
+#Ciclo para Conectar en cada servidor
+#Concatenando la llave y la ip 
+do
+    echo $line
+    ssh -i $key@$line
+    yes
+#Validando todos los caracteres
+    lowercase(){
+        echo "$1" | sed "y/ABCDEFGHIJKLMNOPQRSTUVWXYZ/abcdefghijklmnopqrstuvwxyz/"
+    }
+    SO=`lowercase \`uname\``
+    KRNL=`uname -r`
+    MT=`uname -m`
+#Entrando a los repositorios
+#Verificando que rutas existen
+    if [ "${SO}" = "Linux" ] ; then
+        if [ -f /etc/redhat-release ] ; then
+            Dist='RedHat'
+            DIST=`cat /etc/redhat-release |sed s/\ release.*//`
+            PSN=`cat /etc/redhat-release | sed s/.*\(// | sed s/\)//`
+            CHECK=`cat /etc/redhat-release | sed s/.*release\ // | sed s/\ .*//`
+        elif [ -f /etc/debian_version ] ; then
+                Dist='DEBIAN'
+                DIST=`cat /etc/lsb-release | grep '^DISTRIB_ID' | awk -F=  '{ print $2 }'`
+                PSN=`cat /etc/lsb-release | grep '^DISTRIB_CODENAME' | awk -F=  '{ print $2 }'`
+                CHECK=`cat /etc/lsb-release | grep '^DISTRIB_RELEASE' | awk -F=  '{ print $2 }'`
+        fi
+        if [ -f /etc/UnitedLinux-release ] ; then
+            DIST="${DIST}[`cat /etc/UnitedLinux-release | tr "\n" ' ' | sed s/VERSION.*//`]"
+        fi
+        SO=`lowercase $SO`
+        Dist=`lowercase $Dist`
+        readonly SO
+        readonly DIST
+        readonly Dist
+        readonly PSN
+        readonly CHECK
+        readonly KRNL
+        readonly MT
+    fi
+#Detectando el sistema operativo
+#Desinstalando y reinstalando clamav
+#Actualización de paquetes
+#Para Debian
+    if [ $Dist == DEBIAN ]; then
+        echo "SO: Ubuntu"
+
+        sudo apt remove clamav -y
+
+        sudo apt-get install clamav -y
+
+        sudo apt-get update && sudo apt-get upgrade -y
+#Para CentOs
+    elif [ $Dist == redhat ]; then
+        echo "SO: CentOS"
+
+        sudo yum remove clamav -y
+
+        sudo yum install clamav -y
+
+        sudo yum install epel-release
+
+        sudo yum update -y && sudo yum upgrade -y
+    fi
+    exit
+done <$ADDRESS
+#Fin del script
